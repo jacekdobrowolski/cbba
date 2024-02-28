@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"math"
 	"time"
 )
 
 type Position struct {
-	x int
-	y int
+	x float64
+	y float64
 }
 
 type Task Position
@@ -18,10 +19,14 @@ func newTasksGrid(width, height int) []Task {
 	tasks := make([]Task, 0, width*height)
 	for x := range width {
 		for y := range height {
-			tasks = append(tasks, Task{x, y})
+			tasks = append(tasks, Task{float64(x), float64(y)})
 		}
 	}
 	return tasks
+}
+
+func distance(a, b Position) float64 {
+	return math.Hypot(a.x-b.x, a.y-b.y)
 }
 
 func main() {

@@ -16,7 +16,7 @@ type Rover struct {
 
 var roverIDSequence int
 
-func newRover(x, y int, logger *slog.Logger) Rover {
+func newRover(x, y float64, logger *slog.Logger) Rover {
 
 	rover := Rover{
 		id:       roverIDSequence,
