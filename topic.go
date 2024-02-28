@@ -46,7 +46,7 @@ out:
 func (t *Topic[T]) subscribe() chan T {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	new := make(chan T)
+	new := make(chan T, 10)
 	t.subs = append(t.subs, new)
 	return new
 }
