@@ -44,15 +44,15 @@ func main() {
 	logger := slog.Default()
 
 	tasks := newTasksGrid(2, 2)
-	rover0 := newRover(-1, 0, logger)
-	rover1 := newRover(2, 1, logger)
+	agent0 := newAgent(-1, 0, logger)
+	agent1 := newAgent(2, 1, logger)
 
 	auctionTopic := newTopic[Task](logger)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	rover0.CBAAInit(ctx, auctionTopic)
-	rover1.CBAAInit(ctx, auctionTopic)
+	agent0.CBAAInit(ctx, auctionTopic)
+	agent1.CBAAInit(ctx, auctionTopic)
 
 	go auctionTopic.start(ctx)
 
