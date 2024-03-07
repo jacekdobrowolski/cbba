@@ -1,4 +1,4 @@
-package main
+package topic
 
 import (
 	"context"
@@ -11,23 +11,23 @@ import (
 
 func TestTopic_HappyCase(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelError}))
-	topic := newTopic[int](logger)
+	topic := New[int](logger)
 	var sub1, sub2 int
 	var wg sync.WaitGroup
 	wg.Add(2)
-	topic.subscribe(func(msg int) {
+	topic.Subscribe(func(msg int) {
 		defer wg.Done()
 		sub1 = msg
 	})
-	topic.subscribe(func(msg int) {
+	topic.Subscribe(func(msg int) {
 		defer wg.Done()
 		sub2 = msg
 	})
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	go topic.start(ctx)
+	go topic.Start(ctx)
 	msg := 1
-	topic.pub <- msg
+	topic.Publish(ctx, msg)
 	wg.Wait()
 	if sub1 == 0 || sub2 == 0 {
 		t.Errorf("expected %d got %d and %d", msg, sub1, sub2)
@@ -41,7 +41,7 @@ func BenchmarkTopic(b *testing.B) {
 		b.Run(fmt.Sprintf("topic-%d-subs-%d-msgs", n, numMessages), func(b *testing.B) {
 
 			logger := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelError}))
-			topic := newTopic[int64](logger)
+			topic := New[int64](logger)
 			sub := make([]int64, n)
 			b.StartTimer()
 			muxs := make([]sync.Mutex, n)
@@ -49,7 +49,7 @@ func BenchmarkTopic(b *testing.B) {
 			wg.Add(n * numMessages)
 			for i := range n {
 				i := i
-				topic.subscribe(func(msg int64) {
+				topic.Subscribe(func(msg int64) {
 					defer wg.Done()
 					muxs[i].Lock()
 					defer muxs[i].Unlock()
@@ -59,11 +59,11 @@ func BenchmarkTopic(b *testing.B) {
 
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
-			go topic.start(ctx)
+			go topic.Start(ctx)
 			var msg int64 = 1
 
 			for range numMessages {
-				topic.pub <- msg
+				topic.Publish(ctx, msg)
 			}
 			wg.Wait()
 			b.StopTimer()

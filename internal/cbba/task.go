@@ -1,6 +1,12 @@
-package main
+package cbba
+
+type Position struct {
+	x float64
+	y float64
+}
 
 type TaskID uint
+
 type Task struct {
 	id              TaskID
 	position        Position
@@ -10,7 +16,7 @@ type Task struct {
 
 var taskIDSequence TaskID
 
-func newTask(position Position) Task {
+func NewTask(position Position) Task {
 	result := Task{
 		id:              taskIDSequence,
 		position:        position,
@@ -21,11 +27,11 @@ func newTask(position Position) Task {
 	return result
 }
 
-func newTasksGrid(width, height int) []Task {
+func NewTasksGrid(width, height int) []Task {
 	tasks := make([]Task, 0, width*height)
 	for x := range width {
 		for y := range height {
-			tasks = append(tasks, newTask(Position{float64(x), float64(y)}))
+			tasks = append(tasks, NewTask(Position{float64(x), float64(y)}))
 		}
 	}
 	return tasks

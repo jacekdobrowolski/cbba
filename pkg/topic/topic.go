@@ -1,4 +1,4 @@
-package main
+package topic
 
 import (
 	"context"
@@ -13,7 +13,7 @@ type Topic[T any] struct {
 	logger *slog.Logger
 }
 
-func newTopic[T any](logger *slog.Logger) *Topic[T] {
+func New[T any](logger *slog.Logger) *Topic[T] {
 	t := &Topic[T]{
 		pub:    make(chan T),
 		logger: logger,
@@ -21,7 +21,7 @@ func newTopic[T any](logger *slog.Logger) *Topic[T] {
 	return t
 }
 
-func (t *Topic[T]) start(ctx context.Context) {
+func (t *Topic[T]) Start(ctx context.Context) {
 out:
 	for {
 		select {
@@ -41,8 +41,15 @@ out:
 	}
 }
 
-func (t *Topic[T]) subscribe(callback func(T)) {
+func (t *Topic[T]) Subscribe(callback func(T)) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	t.subs = append(t.subs, callback)
+}
+
+func (t *Topic[T]) Publish(ctx context.Context, msg T) {
+	select {
+	case t.pub <- msg:
+	case <-ctx.Done():
+	}
 }

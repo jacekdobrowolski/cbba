@@ -1,4 +1,4 @@
-package main
+package cbba
 
 import (
 	"math"
@@ -48,10 +48,10 @@ func TestAgent_scorePath(t *testing.T) {
 		want   float64
 	}{
 		{"empty case", fields{Position{0, 0}, map[TaskID]Task{}}, args{[]TaskID{}}, 0},
-		{"empty path", fields{Position{0, 0}, map[TaskID]Task{0: newTask(Position{0, 1})}}, args{[]TaskID{0}}, 1},
-		{"one in path new task", fields{Position{0, 0}, map[TaskID]Task{0: newTask(Position{0, 1}), 1: newTask(Position{0, 2})}}, args{[]TaskID{0, 1}}, 2},
-		{"loop", fields{Position{1, 1}, map[TaskID]Task{0: newTask(Position{-1, -1}), 1: newTask(Position{1, 1})}}, args{[]TaskID{0, 1}}, 1 / math.Sqrt(2)},
-		{"starting on top of a task", fields{Position{1, 1}, map[TaskID]Task{0: newTask(Position{-1, -1}), 1: newTask(Position{1, 1})}}, args{[]TaskID{1, 0}}, MaxTaskScore + 1.0/(2*math.Sqrt(2))},
+		{"empty path", fields{Position{0, 0}, map[TaskID]Task{0: NewTask(Position{0, 1})}}, args{[]TaskID{0}}, 1},
+		{"one in path new task", fields{Position{0, 0}, map[TaskID]Task{0: NewTask(Position{0, 1}), 1: NewTask(Position{0, 2})}}, args{[]TaskID{0, 1}}, 2},
+		{"loop", fields{Position{1, 1}, map[TaskID]Task{0: NewTask(Position{-1, -1}), 1: NewTask(Position{1, 1})}}, args{[]TaskID{0, 1}}, 1 / math.Sqrt(2)},
+		{"starting on top of a task", fields{Position{1, 1}, map[TaskID]Task{0: NewTask(Position{-1, -1}), 1: NewTask(Position{1, 1})}}, args{[]TaskID{1, 0}}, MaxTaskScore + 1.0/(2*math.Sqrt(2))},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -86,9 +86,9 @@ func TestAgent_bestPlaceToInsertTaskIntoPath(t *testing.T) {
 			fields{Position{0, -1},
 				[]TaskID{0, 1},
 				map[TaskID]Task{
-					0: newTask(Position{0, 0}),
-					1: newTask(Position{0, 1}),
-					2: newTask(Position{0, 2})}},
+					0: NewTask(Position{0, 0}),
+					1: NewTask(Position{0, 1}),
+					2: NewTask(Position{0, 2})}},
 			args{2},
 			2,
 		},
@@ -97,9 +97,9 @@ func TestAgent_bestPlaceToInsertTaskIntoPath(t *testing.T) {
 			fields{Position{0, -1},
 				[]TaskID{0, 2},
 				map[TaskID]Task{
-					0: newTask(Position{0, 0}),
-					1: newTask(Position{0, 1}),
-					2: newTask(Position{0, 2})}},
+					0: NewTask(Position{0, 0}),
+					1: NewTask(Position{0, 1}),
+					2: NewTask(Position{0, 2})}},
 			args{1},
 			1,
 		},
@@ -108,9 +108,9 @@ func TestAgent_bestPlaceToInsertTaskIntoPath(t *testing.T) {
 			fields{Position{0, -1},
 				[]TaskID{1, 2},
 				map[TaskID]Task{
-					0: newTask(Position{0, 0}),
-					1: newTask(Position{0, 1}),
-					2: newTask(Position{0, 2})}},
+					0: NewTask(Position{0, 0}),
+					1: NewTask(Position{0, 1}),
+					2: NewTask(Position{0, 2})}},
 			args{0},
 			0,
 		},

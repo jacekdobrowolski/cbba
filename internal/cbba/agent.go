@@ -1,10 +1,12 @@
-package main
+package cbba
 
 import (
 	"context"
 	"log/slog"
 	"math"
 	"sync"
+
+	"github.com/jacekdobrowolski/cbba/pkg/topic"
 )
 
 const MaxTaskScore = 100
@@ -21,7 +23,7 @@ type Agent struct {
 
 var agentIDSequence int
 
-func newAgent(x, y float64, logger *slog.Logger) *Agent {
+func NewAgent(x, y float64, logger *slog.Logger) *Agent {
 
 	agent := &Agent{
 		id:       agentIDSequence,
@@ -36,8 +38,8 @@ func newAgent(x, y float64, logger *slog.Logger) *Agent {
 	return agent
 }
 
-func (a *Agent) CBAAInit(ctx context.Context, topic *Topic[Task]) {
-	topic.subscribe(func(receivedTask Task) {
+func (a *Agent) CBAAInit(ctx context.Context, topic *topic.Topic[Task]) {
+	topic.Subscribe(func(receivedTask Task) {
 		a.logger.Info("Agent received message", "agent_id", a.id, "msg", receivedTask)
 		a.mu.Lock()
 		currentState, ok := a.tasks[receivedTask.id]
@@ -52,7 +54,7 @@ func (a *Agent) CBAAInit(ctx context.Context, topic *Topic[Task]) {
 	a.logger.Info("Agent ready", "agent_id", a.id)
 }
 
-func (a *Agent) updateBid(ctx context.Context, task Task, topic *Topic[Task]) {
+func (a *Agent) updateBid(ctx context.Context, task Task, topic *topic.Topic[Task]) {
 	a.mu.RLock()
 	taskReward := scoreDistance(a.position, task.position)
 	if taskReward > task.bid {
@@ -60,10 +62,7 @@ func (a *Agent) updateBid(ctx context.Context, task Task, topic *Topic[Task]) {
 		task.highestBidderId = a.id
 	}
 	a.mu.RUnlock()
-	select {
-	case topic.pub <- task:
-	case <-ctx.Done():
-	}
+	topic.Publish(ctx, task)
 }
 
 func scoreDistance(a, b Position) float64 {
