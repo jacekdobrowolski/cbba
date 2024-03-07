@@ -37,30 +37,18 @@ func newAgent(x, y float64, logger *slog.Logger) *Agent {
 }
 
 func (a *Agent) CBAAInit(ctx context.Context, topic *Topic[Task]) {
-	receive := topic.subscribe()
-	go func() {
-	out:
-		for {
-			select {
-			case receivedTask := <-receive:
-				go func() {
-					a.logger.Info("Agent received message", "agent_id", a.id, "msg", receivedTask)
-					a.mu.Lock()
-					currentState, ok := a.tasks[receivedTask.id]
-					if !ok || currentState.bid < receivedTask.bid {
-						a.tasks[receivedTask.id] = receivedTask
-						go a.updateBid(ctx, receivedTask, topic)
+	topic.subscribe(func(receivedTask Task) {
+		a.logger.Info("Agent received message", "agent_id", a.id, "msg", receivedTask)
+		a.mu.Lock()
+		currentState, ok := a.tasks[receivedTask.id]
+		if !ok || currentState.bid < receivedTask.bid {
+			a.tasks[receivedTask.id] = receivedTask
+			go a.updateBid(ctx, receivedTask, topic)
 
-					}
-					a.mu.Unlock()
-					a.logger.Info("Agent tasks updated", "agent_id", a.id, "planned_tasks", a.tasks)
-				}()
-			case <-ctx.Done():
-				break out
-
-			}
 		}
-	}()
+		a.mu.Unlock()
+		a.logger.Info("Agent tasks updated", "agent_id", a.id, "planned_tasks", a.tasks)
+	})
 	a.logger.Info("Agent ready", "agent_id", a.id)
 }
 

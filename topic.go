@@ -8,7 +8,7 @@ import (
 
 type Topic[T any] struct {
 	pub    chan T
-	subs   []chan T
+	subs   []func(T)
 	mu     sync.Mutex
 	logger *slog.Logger
 }
@@ -28,13 +28,9 @@ out:
 		case msg := <-t.pub:
 			t.logger.Info("Topic recived message", "msg", msg)
 			t.mu.Lock()
-			for _, sub := range t.subs {
-				select {
-				case sub <- msg:
-				default:
-					t.logger.Warn("Channel does not listen")
-					continue
-				}
+			for _, callback := range t.subs {
+				callback := callback
+				go callback(msg)
 			}
 			t.mu.Unlock()
 		case <-ctx.Done():
@@ -43,10 +39,8 @@ out:
 	}
 }
 
-func (t *Topic[T]) subscribe() chan T {
+func (t *Topic[T]) subscribe(callback func(T)) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	new := make(chan T, 10)
-	t.subs = append(t.subs, new)
-	return new
+	t.subs = append(t.subs, callback)
 }
