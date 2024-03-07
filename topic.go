@@ -9,7 +9,7 @@ import (
 type Topic[T any] struct {
 	pub    chan T
 	subs   []func(T)
-	mu     sync.Mutex
+	mu     sync.RWMutex
 	logger *slog.Logger
 }
 
@@ -26,13 +26,15 @@ out:
 	for {
 		select {
 		case msg := <-t.pub:
-			t.logger.Info("Topic recived message", "msg", msg)
-			t.mu.Lock()
-			for _, callback := range t.subs {
-				callback := callback
-				go callback(msg)
-			}
-			t.mu.Unlock()
+			go func() {
+				t.logger.Info("Topic received message", "msg", msg)
+				t.mu.RLock()
+				defer t.mu.RUnlock()
+				for _, callback := range t.subs {
+					callback := callback
+					go callback(msg)
+				}
+			}()
 		case <-ctx.Done():
 			break out
 		}
